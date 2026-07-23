@@ -1,0 +1,83 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+dist-ssr/
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Saved projects are the user's own work, not part of the repo.
+# The folder itself stays tracked (see projects/.gitkeep) so the app has somewhere to write.
+projects/*.smproj.json
+projects/*.tmp
+
+# Goldman Sans is Goldman Sachs' corporate typeface, licensed under their own
+# terms — not an open font license like the four self-hosted families in
+# public/fonts/. Redistributing it from a public repo is a licensing decision,
+# so it is untracked by default. The files stay on disk and work locally; a
+# fresh clone falls back to Inter via the CSS font stack.
+# Remove these two lines only if you have confirmed you may redistribute it.
+public/fonts/goldman/
+# Anchored with a leading slash, and this is not cosmetic: macOS sets core.ignorecase=true,
+# so an unanchored `Fonts/` also matched `public/fonts/` and silently excluded every
+# self-hosted family — the whole point of not using a CDN — from the repository.
+/Fonts/
+
+# Fonts installed through the in-app browser, and any font files you dropped in yourself.
+# Untracked, for the same reason as Goldman Sans above plus two of its own:
+#
+#   1. Licensing. Google Fonts families are overwhelmingly OFL and would be fine to
+#      redistribute — but this directory is not Google-only. Uploaded files land here too,
+#      and those are licensed however you licensed them. The directory is unknown-provenance
+#      by construction, so it does not go in a public repo by default.
+#   2. They are a cache, not source. Every family here is one click away from being
+#      re-downloaded, and each one is a few hundred KB of binary that will never diff.
+#   3. Which families you installed is your taste, not the project's configuration.
+#
+# installed.css is generated from whatever is actually on disk every time the dev server
+# starts, so a fresh clone is immediately consistent — it just declares nothing until you
+# install something. The four families in public/fonts/webfonts.css stay tracked and are
+# what the app falls back to.
+#
+# Committing a family deliberately: confirm its LICENSE.txt permits redistribution, then
+# `git add -f public/fonts/installed/<family-slug>`.
+public/fonts/installed/*
+!public/fonts/installed/.gitkeep
+
+# The drop folder — font files you put in public/fonts/custom/ yourself. Untracked for the same
+# reasons as public/fonts/installed/ above: they are your own files of unknown provenance and
+# licensing, they are binary that will never diff meaningfully, and which fonts you keep here is
+# your taste rather than the project's configuration. custom.css is GENERATED from whatever is on
+# disk every time the dev server starts, so it is ignored too — a fresh clone regenerates it (and
+# it just declares nothing until you drop a font in). The folder itself stays tracked via .gitkeep
+# so the app always has somewhere to scan, and README.md stays tracked so the instructions travel.
+#
+# Committing a font deliberately: confirm its licence permits redistribution, then
+# `git add -f "public/fonts/custom/<family>"`.
+public/fonts/custom/*
+!public/fonts/custom/.gitkeep
+!public/fonts/custom/README.md
+
+# Local Claude Code / assistant config (not part of the product)
+.claude/

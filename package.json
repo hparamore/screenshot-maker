@@ -1,0 +1,28 @@
+{
+  "name": "screenshot-maker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Compose App Store / Play Store marketing screenshots — every frame, every language, every size — in the browser.",
+  "author": "Hunter Paramore",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "dev:lan": "SM_HOST=lan vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "file-saver": "^2.0.5",
+    "html-to-image": "^1.11.13",
+    "jszip": "^3.10.1",
+    "nanoid": "^5.0.7",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "zustand": "^4.5.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^5.4.10"
+  }
+}

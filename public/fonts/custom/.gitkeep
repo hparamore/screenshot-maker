@@ -1,0 +1,5 @@
+This file keeps public/fonts/custom/ present on a fresh clone.
+
+Drop your own font files in this folder — see README.md next to this file.
+The font files themselves and the generated custom.css are git-ignored; this
+placeholder and the README are the only tracked things here.

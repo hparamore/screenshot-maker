@@ -1,0 +1,1528 @@
+/* Goldman Sans — TTFs served from /public/fonts/goldman/ */
+@font-face {
+  font-family: 'Goldman Sans';
+  src: url('/fonts/goldman/GoldmanSans-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Goldman Sans';
+  src: url('/fonts/goldman/GoldmanSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Goldman Sans';
+  src: url('/fonts/goldman/GoldmanSans-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Goldman Sans';
+  src: url('/fonts/goldman/GoldmanSans-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Goldman Sans';
+  src: url('/fonts/goldman/GoldmanSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Goldman Sans';
+  src: url('/fonts/goldman/GoldmanSans-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Goldman Sans';
+  src: url('/fonts/goldman/GoldmanSans-Black.ttf') format('truetype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Goldman Sans Condensed';
+  src: url('/fonts/goldman/GoldmanSansCondensed-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Goldman Sans Condensed';
+  src: url('/fonts/goldman/GoldmanSansCondensed-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0e1014;
+  color: #e6e8ec;
+  overflow: hidden;
+  font-size: 13px;
+}
+button { font-family: inherit; cursor: pointer; }
+input, select, textarea { font-family: inherit; }
+
+.app {
+  display: grid;
+  grid-template-rows: 52px 1fr;
+  grid-template-columns: 1fr 320px;
+  grid-template-areas:
+    "toolbar toolbar"
+    "workspace inspector";
+  height: 100vh;
+}
+
+/* Toolbar */
+.toolbar {
+  grid-area: toolbar;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 0 16px;
+  background: #14171d;
+  border-bottom: 1px solid #232831;
+}
+.toolbar .group { display: flex; align-items: center; gap: 6px; }
+.toolbar .divider { width: 1px; height: 28px; background: #232831; }
+.toolbar .title { font-weight: 600; font-size: 13px; letter-spacing: 0.3px; color: #c2c8d2; }
+.toolbar .spacer { flex: 1; }
+
+.btn {
+  background: #232831;
+  color: #e6e8ec;
+  border: 1px solid transparent;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  transition: background 0.15s;
+}
+.btn:hover { background: #2c323d; }
+.btn.primary { background: #4a7cff; }
+.btn.primary:hover { background: #5d8aff; }
+.btn.ghost { background: transparent; }
+.btn.ghost:hover { background: #232831; }
+.btn.danger { background: #2a1a1c; color: #ff8a92; }
+.btn.danger:hover { background: #3a2226; }
+.btn.small { padding: 4px 8px; font-size: 11px; }
+
+input.text, select.text, textarea.text {
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  color: #e6e8ec;
+  padding: 6px 8px;
+  border-radius: 5px;
+  font-size: 12px;
+  width: 100%;
+}
+input.text:focus, select.text:focus, textarea.text:focus {
+  outline: none;
+  border-color: #4a7cff;
+}
+input.num { width: 60px; }
+input.color {
+  width: 32px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #2a2f3a;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Workspace */
+.workspace {
+  grid-area: workspace;
+  background: #0e1014;
+  overflow: auto;
+  padding: 24px;
+  position: relative;
+}
+.workspace-inner {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  min-width: min-content;
+}
+
+.screenshot-card {
+  position: relative;
+  flex-shrink: 0;
+  border-radius: 14px;
+  /* NOT hidden: the header sits above the card. The frame wrapper does the
+     clipping, so the rounded preview corners survive. */
+  overflow: visible;
+  outline: 2px solid transparent;
+  transition: outline-color 0.15s;
+  background: #1a1d24;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.5);
+}
+.screenshot-card.selected {
+  outline-color: #4a7cff;
+}
+
+.frame-header {
+  position: absolute;
+  top: -26px;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  height: 22px;
+}
+.frame-name {
+  min-width: 0;
+  max-width: 55%;
+  padding: 2px 5px;
+  margin-left: -5px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  color: #7c8595;
+  font-size: 11px;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.frame-name:hover { background: #1a1d24; color: #c2c8d2; }
+.frame-name:focus-visible {
+  outline: 2px solid #4a7cff;
+  outline-offset: 1px;
+  color: #c2c8d2;
+}
+.frame-name-input {
+  width: auto;
+  max-width: 55%;
+  padding: 2px 5px;
+  font-size: 11px;
+}
+.screenshot-card .actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.screenshot-card .actions .btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.screenshot-card .actions .btn:focus-visible {
+  outline: 2px solid #4a7cff;
+  outline-offset: 1px;
+}
+
+.screenshot-frame-wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+}
+.screenshot-frame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  overflow: hidden;
+  user-select: none;
+}
+
+.text-area {
+  position: absolute;
+  /* visible, not hidden: a nudged or scaled text block must not be clipped.
+     The fixed height still governs where the device area starts. */
+  overflow: visible;
+}
+.preheader {
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+.heading {
+  margin: 0;
+  line-height: 1.05;
+}
+
+.image-area {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+}
+.image-area .dropped-image {
+  max-width: 100%;
+  max-height: 100%;
+  display: block;
+}
+.image-area .drop-zone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px dashed rgba(255,255,255,0.4);
+  border-radius: 32px;
+  width: 100%;
+  height: 100%;
+  color: rgba(255,255,255,0.7);
+  font-size: 56px;
+  text-align: center;
+  padding: 60px;
+  cursor: pointer;
+}
+.image-area .drop-zone.over { background: rgba(74,124,255,0.15); border-color: #4a7cff; }
+
+.overlays-layer {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+}
+.overlay {
+  position: absolute;
+  pointer-events: auto;
+  cursor: move;
+}
+.overlay.selected { outline: 4px solid #4a7cff; outline-offset: 0; }
+.overlay .resize-handle {
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  background: #4a7cff;
+  border: 3px solid white;
+  border-radius: 50%;
+  cursor: nwse-resize;
+  bottom: -12px;
+  right: -12px;
+  pointer-events: auto;
+}
+.overlay img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+}
+
+/* Inspector */
+.inspector {
+  grid-area: inspector;
+  background: #14171d;
+  border-left: 1px solid #232831;
+  overflow-y: auto;
+  padding: 16px;
+}
+.inspector h3 {
+  margin: 0 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #7c8595;
+}
+.section {
+  border-bottom: 1px solid #1d2129;
+  padding: 16px 0;
+}
+.section:first-child { padding-top: 0; }
+.section:last-child { border-bottom: none; }
+.row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.row.spread { justify-content: space-between; }
+.row label.lbl {
+  font-size: 11px;
+  color: #9aa3b2;
+  min-width: 70px;
+}
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.grid4 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.padbox {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.padbox .pad-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.padbox .pad-cell span {
+  font-size: 10px;
+  color: #7c8595;
+}
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  background: #1a1d24;
+  padding: 3px;
+  border-radius: 6px;
+}
+.tabs .tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 6px;
+  border-radius: 4px;
+  color: #9aa3b2;
+  font-size: 11px;
+  font-weight: 500;
+}
+.tabs .tab.active { background: #2c323d; color: #e6e8ec; }
+
+.swatch-row { display: flex; gap: 6px; align-items: center; }
+
+.empty-state {
+  color: #6c7585;
+  text-align: center;
+  font-size: 12px;
+  padding: 40px 20px;
+}
+
+.gradient-preview {
+  width: 100%;
+  height: 60px;
+  border-radius: 6px;
+  border: 1px solid #2a2f3a;
+  margin-bottom: 8px;
+}
+
+.angle-dial {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  position: relative;
+  cursor: grab;
+  margin: 0 auto;
+}
+.angle-dial .needle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 36px;
+  background: #4a7cff;
+  border-radius: 2px;
+  transform-origin: 50% 0;
+}
+.angle-dial .center-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  background: #4a7cff;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.lang-pill {
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  cursor: pointer;
+}
+.lang-pill.active { background: #4a7cff; border-color: #4a7cff; color: white; }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal {
+  background: #14171d;
+  border: 1px solid #232831;
+  border-radius: 10px;
+  padding: 20px;
+  min-width: 360px;
+  max-width: 500px;
+}
+.modal h2 { margin: 0 0 16px; font-size: 16px; }
+
+.zoom-selector {
+  position: absolute;
+  border: 3px dashed #4a7cff;
+  background: rgba(74,124,255,0.15);
+  pointer-events: none;
+}
+.zoom-mode-banner {
+  position: fixed;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #4a7cff;
+  color: white;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 100;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+}
+
+.template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.template-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: #1a1d24;
+  border-radius: 6px;
+}
+
+/* ── Text block variant chrome ─────────────────────────────────────────────
+   Lives outside the exported node (.screenshot-frame), so it can never be
+   captured into a PNG. Sized in canvas pixels; counter-scaled where it needs
+   to stay legible at workspace zoom. */
+.text-chrome-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: top left;
+  pointer-events: none;
+  z-index: 2;
+}
+.text-chrome-box {
+  position: absolute;
+  outline-style: dashed;
+  outline-color: rgba(74, 124, 255, 0.85);
+  outline-offset: 0;
+}
+/* A translated headline that spills past the fixed text-area height gets a solid
+   amber outline instead of the dashed blue hover outline. */
+.text-chrome-box.is-overflow {
+  outline-style: solid;
+  outline-color: rgba(240, 162, 60, 0.95);
+}
+.text-unlinked-badge,
+.text-overflow-badge {
+  position: absolute;
+  transform-origin: top left;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #ffffff;
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  padding: 4px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+}
+.text-unlinked-badge {
+  top: 0;
+  left: 0;
+  background: #4a7cff;
+}
+/* Anchored to the bottom edge of the area — the line the content crossed. */
+.text-overflow-badge {
+  top: 100%;
+  left: 0;
+  background: #f0a23c;
+  color: #221a08;
+}
+
+/* Hidden measuring copies of the text block, one per language. Also outside
+   .screenshot-frame, so they can never reach a PNG. `visibility: hidden` is
+   deliberate — the element must still lay out to have a height worth reading. */
+.text-measure-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+.text-measure-block {
+  /* flow-root so the pre-header's bottom margin is measured, not collapsed out
+     — the real .text-area is absolutely positioned and contains it the same way. */
+  display: flow-root;
+}
+
+/* ── Text fit (inspector) ─────────────────────────────────────────────────── */
+.fit-status {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 8px;
+}
+.fit-status .fit-dot {
+  width: 7px;
+  height: 7px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: #4d9e6a;
+  flex-shrink: 0;
+}
+.fit-status .fit-text {
+  flex: 1;
+  font-size: 11px;
+  line-height: 1.45;
+  color: #9aa3b2;
+}
+.fit-status.is-over {
+  background: #2a2114;
+  border-color: #5a441d;
+}
+.fit-status.is-over .fit-dot { background: #f0a23c; }
+.fit-status.is-over .fit-text { color: #f0c078; }
+
+.fit-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+.fit-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 9px;
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  border-radius: 999px;
+  color: #9aa3b2;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.fit-pill:hover { background: #232831; }
+.fit-pill:focus-visible {
+  outline: 2px solid #4a7cff;
+  outline-offset: 1px;
+}
+.fit-pill .fit-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3a414e;
+}
+.fit-pill.ok .fit-pill-dot { background: #4d9e6a; }
+.fit-pill.over {
+  border-color: #5a441d;
+  color: #f0c078;
+}
+.fit-pill.over .fit-pill-dot { background: #f0a23c; }
+.fit-pill.active {
+  border-color: #4a7cff;
+  color: #e6e8ec;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ── Workspace dock (zoom + shortcuts) ───────────────────────────────────── */
+.workspace-dock {
+  position: fixed;
+  bottom: 12px;
+  left: 12px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: #14171d;
+  border: 1px solid #232831;
+  border-radius: 6px;
+  font-size: 11px;
+  color: #9aa3b2;
+}
+.workspace-dock input[type='range']:focus-visible,
+.workspace-dock .btn:focus-visible {
+  outline: 2px solid #4a7cff;
+  outline-offset: 1px;
+}
+
+/* ── Shortcuts overlay ───────────────────────────────────────────────────── */
+.shortcuts-modal { min-width: 420px; max-width: 520px; }
+.shortcuts-group { margin-bottom: 14px; }
+.shortcuts-group h3 {
+  margin: 0 0 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #7c8595;
+}
+.shortcuts-list { margin: 0; }
+.shortcuts-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 3px 0;
+}
+.shortcuts-row dt {
+  display: flex;
+  gap: 3px;
+  flex-shrink: 0;
+  min-width: 120px;
+}
+.shortcuts-row dd {
+  margin: 0;
+  font-size: 12px;
+  color: #9aa3b2;
+}
+.shortcuts-row kbd {
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-family: inherit;
+  font-size: 11px;
+  color: #c2c8d2;
+}
+.shortcuts-note {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: #7c8595;
+}
+
+/* ── Confirm dialog ──────────────────────────────────────────────────────── */
+.confirm-dialog { min-width: 380px; max-width: 440px; }
+.confirm-dialog h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #e6e8ec;
+}
+.confirm-dialog-body {
+  margin: 0 0 18px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #9aa3b2;
+}
+.confirm-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.confirm-dialog-actions .btn:focus-visible {
+  outline: 2px solid #8fb0ff;
+  outline-offset: 2px;
+}
+
+/* ── Variant status line (inspector) ─────────────────────────────────────── */
+.variant-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  border-radius: 6px;
+  padding: 8px 10px;
+  margin-bottom: 10px;
+}
+.variant-status .variant-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #7c8595;
+  flex-shrink: 0;
+}
+.variant-status.is-master .variant-dot { background: #4a7cff; }
+.variant-status.is-unlocked .variant-dot { background: #c66a4d; }
+.variant-status .variant-text {
+  flex: 1;
+  min-width: 120px;
+  font-size: 11px;
+  line-height: 1.4;
+  color: #9aa3b2;
+}
+.variant-hint {
+  margin: 0 0 8px;
+  font-size: 10px;
+  line-height: 1.5;
+  color: #7c8595;
+}
+
+/* Stepper: label above a tight [-10][-1][input][+1][+10][↺] row, because the
+   320px inspector cannot fit an inline label next to six controls. */
+.stepper { margin-bottom: 8px; }
+.stepper[aria-disabled='true'] { opacity: 0.45; }
+.stepper .stepper-label {
+  display: block;
+  margin-bottom: 4px;
+  min-width: 0;
+}
+.stepper .stepper-controls {
+  gap: 4px;
+  margin-bottom: 0;
+}
+.stepper .stepper-controls .btn.small { padding: 4px 6px; }
+.stepper .stepper-input {
+  flex: 1;
+  min-width: 48px;
+  text-align: center;
+}
+.stepper .stepper-suffix {
+  font-size: 11px;
+  color: #7c8595;
+}
+.stepper input:disabled, .stepper .btn:disabled { cursor: not-allowed; }
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #0e1014; }
+::-webkit-scrollbar-thumb { background: #2a2f3a; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3a414e; }
+::-webkit-scrollbar-corner { background: #0e1014; }
+/* Firefox has no ::-webkit-scrollbar; give it the dark treatment too so the
+   inspector's scrollbar never renders as a bright light-mode strip. */
+html { scrollbar-color: #2a2f3a #0e1014; scrollbar-width: thin; }
+
+/* ==================================================================
+   Project menu — save / open / import project files  (ProjectMenu.jsx)
+   ================================================================== */
+
+.project-menu { position: relative; }
+
+.project-menu-trigger {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  max-width: 260px;
+  color: #c2c8d2;
+}
+.project-menu-trigger[aria-expanded="true"] { background: #232831; }
+.project-menu-trigger:focus-visible {
+  outline: 2px solid #4a7cff;
+  outline-offset: 1px;
+}
+.project-menu-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.project-menu-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f0a23c;
+  flex-shrink: 0;
+}
+.project-menu-caret { color: #7c8595; font-size: 10px; }
+
+.project-menu-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 300;
+  min-width: 280px;
+  max-width: 340px;
+  padding: 6px;
+  background: #171b22;
+  border: 1px solid #2a2f3a;
+  border-radius: 10px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.55);
+}
+
+.project-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 7px 9px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #e6e8ec;
+  font-size: 12px;
+  text-align: left;
+}
+.project-menu-item:hover { background: #232831; }
+.project-menu-item:focus-visible {
+  outline: none;
+  background: #2c323d;
+  box-shadow: inset 0 0 0 1px #4a7cff;
+}
+
+.project-menu-kbd {
+  font-family: inherit;
+  font-size: 11px;
+  color: #7c8595;
+}
+
+.project-menu-sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: #232831;
+}
+
+.project-menu-heading {
+  padding: 4px 9px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #7c8595;
+}
+
+.project-menu-empty {
+  padding: 4px 9px 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #7c8595;
+}
+.project-menu-empty code {
+  background: #1a1d24;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 10px;
+}
+
+.project-menu-list {
+  max-height: 240px;
+  overflow-y: auto;
+}
+.project-menu-row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: 6px;
+}
+.project-menu-row.current .project-menu-row-name { color: #4a7cff; }
+.project-menu-open {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+}
+.project-menu-row-name {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.project-menu-row-meta { font-size: 10px; color: #7c8595; }
+.project-menu-delete {
+  flex-shrink: 0;
+  color: #9aa3b2;
+  line-height: 1;
+}
+.project-menu-delete:hover { background: #3a2226; color: #ff8a92; }
+
+/* Transient save / open feedback */
+.project-notice {
+  position: fixed;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 400;
+  max-width: 460px;
+  padding: 9px 16px;
+  background: #1d2129;
+  border: 1px solid #2a2f3a;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #c2c8d2;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+}
+.project-notice.error {
+  background: #2a1a1c;
+  border-color: #4a2a2f;
+  color: #ff8a92;
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Session 6 — dialog consolidation, language pills, inline hints
+   window.prompt / confirm / alert are gone from the app; the styles below
+   dress the in-app replacements. Appended rather than merged into the blocks
+   above so the diff stays reviewable.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Prompt dialog (shared: project name, language code) ─────────────────── */
+.prompt-dialog { min-width: 380px; max-width: 440px; }
+.prompt-dialog h2 {
+  margin: 0 0 10px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #e6e8ec;
+}
+.prompt-dialog-message {
+  margin: 0 0 16px;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #9aa3b2;
+}
+.prompt-dialog-hint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #6c7585;
+}
+.prompt-dialog-error {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #ff8a92;
+}
+.prompt-dialog .text[aria-invalid='true'] { border-color: #6a2f36; }
+.prompt-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+.prompt-dialog-actions .btn:focus-visible,
+.confirm-dialog-actions .btn:focus-visible {
+  outline: 2px solid #8fb0ff;
+  outline-offset: 2px;
+}
+
+/* ── Language pills ───────────────────────────────────────────────────────
+   The pill is a real button now (it was a <span>), and the active one carries
+   an × so removing a language isn't hidden behind a right-click nobody finds.
+   The group owns the chrome so the pill and the × read as one control. */
+.lang-pill-group {
+  display: inline-flex;
+  align-items: center;
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  border-radius: 999px;
+}
+.lang-pill-group.active { background: #4a7cff; border-color: #4a7cff; }
+/* "PT-BR" is two lines wide in a crowded toolbar without this. */
+.lang-pill-group,
+.lang-pill-group .lang-pill { white-space: nowrap; }
+.lang-pill-group .lang-pill,
+.lang-pill-group .lang-pill.active {
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 11px;
+  color: #c2c8d2;
+  cursor: pointer;
+}
+.lang-pill-group.active .lang-pill { color: #fff; }
+.lang-pill-remove {
+  background: transparent;
+  border: 0;
+  padding: 0 8px 0 2px;
+  font-size: 13px;
+  line-height: 1;
+  color: rgba(255,255,255,0.75);
+  cursor: pointer;
+}
+.lang-pill-remove:hover { color: #fff; }
+.lang-pill-group .lang-pill:focus-visible,
+.lang-pill-remove:focus-visible {
+  outline: 2px solid #8fb0ff;
+  outline-offset: 2px;
+}
+
+/* ── Inline panel hint (replaces an alert in the Overlays panel) ─────────── */
+.panel-hint {
+  margin: 8px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #9aa3b2;
+}
+.panel-hint kbd {
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  border-bottom-width: 2px;
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: inherit;
+  font-size: 10px;
+  color: #c2c8d2;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FONT PICKER  ·  Session 4  ·  appended block, owned by the font-system work
+   Components: FontPicker.jsx, and the missing-font badge in Screenshot.jsx.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.font-picker {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.font-picker-trigger {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  border-radius: 5px;
+  padding: 6px 8px;
+  color: #e6e8ec;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+.font-picker-trigger:hover { border-color: #3a4150; }
+.font-picker-trigger:focus-visible {
+  outline: 2px solid #8fb0ff;
+  outline-offset: 1px;
+  border-color: #4a7cff;
+}
+.font-picker-trigger.is-missing { border-color: #6b4a22; }
+
+/* The preview renders in the chosen face, so it must not inherit the panel's size or weight. */
+.font-picker-trigger-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  line-height: 1.4;
+}
+.font-picker-caret { color: #7c8595; font-size: 10px; }
+.font-picker-warn {
+  flex-shrink: 0;
+  background: #3a2a12;
+  color: #f0c078;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+.font-picker-missing-note {
+  margin: 6px 0 0;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #f0c078;
+}
+
+/* Fixed, not absolute — the inspector is an overflow: auto column and would clip it.
+   Width and placement are set inline by Popover(), which clamps both to the viewport. */
+.font-picker-popover {
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  max-width: calc(100vw - 16px);
+  background: #14171d;
+  border: 1px solid #2a2f3a;
+  border-radius: 8px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.55);
+  overflow: hidden;
+}
+
+/* The popover's max-height only means something if every wrapper between it and the scroll
+   region passes the constraint down. A plain block wrapper here swallowed it and the list
+   below simply grew until `overflow: hidden` cut it off. */
+.font-picker-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.font-picker-search { flex: 0 0 auto; padding: 8px; border-bottom: 1px solid #1d2129; }
+
+/* One scroll region for the list *and* the notes under it, so a long permission explanation
+   can't squeeze the list to nothing and nothing ends up unreachable. */
+.font-picker-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.font-picker-list {
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+}
+.font-picker-group { margin: 0; padding: 0; list-style: none; }
+.font-picker-group-label {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #14171d;
+  padding: 6px 10px 4px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #7c8595;
+}
+
+.font-picker-option {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.font-picker-option-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 17px;
+  line-height: 1.35;
+  color: #e6e8ec;
+}
+.font-picker-option-meta {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: #7c8595;
+}
+.font-picker-chip {
+  background: #1d2129;
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: #8b94a5;
+}
+/* Hover and keyboard share one highlight, so arrowing and pointing never disagree. */
+.font-picker-option.active { background: #232831; }
+.font-picker-option.selected .font-picker-option-name { color: #8fb0ff; }
+.font-picker-option.selected::after {
+  content: '✓';
+  font-size: 11px;
+  color: #4a7cff;
+}
+
+.font-picker-empty,
+.font-picker-note {
+  margin: 0;
+  padding: 10px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #9aa3b2;
+}
+.font-picker-note.subtle { color: #7c8595; padding-top: 4px; }
+.font-picker-note code {
+  background: #1a1d24;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 10px;
+}
+.font-picker-grant {
+  border-top: 1px solid #1d2129;
+  padding: 4px 10px 10px;
+}
+.font-picker-grant .font-picker-note { padding: 6px 0; }
+
+/* Pinned outside the scroll region: the way to a font you don't have yet should not depend on
+   having scrolled past every font you do have. */
+.font-picker-footer {
+  flex: 0 0 auto;
+  border-top: 1px solid #1d2129;
+  background: #14171d;
+}
+.font-picker-browse {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 9px 10px;
+  font: inherit;
+  font-size: 12px;
+  color: #8fb0ff;
+  text-align: left;
+  cursor: pointer;
+}
+.font-picker-browse:hover { background: #1a1f27; }
+.font-picker-browse:focus-visible { outline: 2px solid #8fb0ff; outline-offset: -2px; }
+.font-picker-browse-sub { font-size: 10px; color: #7c8595; }
+
+/* ── Missing-font badge on the frame ──────────────────────────────────────
+   Sibling of .screenshot-frame, never inside [data-export-id]. Unscaled: it's
+   a label about the frame, not something living in canvas coordinates. */
+.frame-font-warning {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 16px);
+  background: rgba(38, 26, 10, 0.94);
+  border: 1px solid #6b4a22;
+  border-radius: 5px;
+  padding: 4px 8px;
+  font-size: 10px;
+  line-height: 1.4;
+  color: #f0c078;
+  pointer-events: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   GOOGLE FONT BROWSER  ·  Session 4  ·  appended block, owned by the font-server work
+   Component: GoogleFontBrowser.jsx (rendered inside FontPicker).
+   Nothing above this banner is touched — the font-picker block is a separate owner.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── The dialog it lives in ───────────────────────────────────────────────
+   Overrides .modal's 360–500px band. A catalog with search, weight and script chips, a size
+   estimate and an upload panel needs real width; it never fit under a 320px inspector control
+   and the popover it used to render in clipped ~55px of it off the right of the window. */
+.font-browser-modal {
+  display: flex;
+  flex-direction: column;
+  width: min(640px, calc(100vw - 32px));
+  min-width: 0;
+  max-width: none;
+  max-height: min(760px, calc(100vh - 48px));
+  padding: 0;
+}
+.font-browser-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex: 0 0 auto;
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid #232831;
+}
+.font-browser-modal-head h2 { margin: 0 0 4px; }
+.font-browser-modal-sub {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #7c8595;
+  max-width: 46ch;
+}
+.font-browser-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 16px 20px 20px;
+}
+
+.font-browser {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Two columns once the dialog is wide enough for them, one when it isn't. auto-fit measures
+   the dialog rather than the viewport, so this stays right inside a narrowed window. */
+.font-browser-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 0 12px;
+  align-items: center;
+}
+.font-browser-controls .row { margin-bottom: 8px; }
+
+/* ── Already on disk ──────────────────────────────────────────────────── */
+.font-installed { border-bottom: 1px solid #1d2129; padding-bottom: 10px; }
+.font-browser .lbl-strong {
+  margin: 0 0 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #7c8595;
+}
+.font-installed-list { list-style: none; margin: 0; padding: 0; }
+.font-installed-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+}
+/* The name renders in its own face — the quickest possible confirmation that an install
+   actually landed and the browser can see it. */
+.font-installed-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: #e6e8ec;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.font-installed-meta { font-size: 10px; color: #7c8595; white-space: nowrap; }
+
+/* ── Results ──────────────────────────────────────────────────────────── */
+/* The list keeps its own scroll rather than letting 120 results push the upload panel a few
+   thousand pixels down the dialog. Capped against the viewport so a short window still shows
+   the catalog note and the upload panel below it. */
+.font-result-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: min(380px, 42vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #232831;
+  border-radius: 6px;
+  background: #14171d;
+}
+.font-result + .font-result { border-top: 1px solid #1d2129; }
+.font-result.is-open { background: #171b22; }
+.font-result-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  background: transparent;
+  border: 0;
+  padding: 7px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+.font-result-head:hover { background: #1c212a; }
+.font-result-head:focus-visible { outline: 2px solid #8fb0ff; outline-offset: -2px; }
+.font-result-name { font-size: 12px; color: #e6e8ec; }
+.font-result-meta { font-size: 10px; color: #7c8595; text-transform: lowercase; }
+
+/* ── Install form ─────────────────────────────────────────────────────── */
+.font-install { padding: 4px 10px 12px; }
+.font-preview {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  background: #0f1116;
+  border-radius: 6px;
+  font-size: 22px;
+  line-height: 1.25;
+  color: #e6e8ec;
+}
+.font-fieldset { border: 0; margin: 0 0 8px; padding: 0; }
+.font-fieldset legend {
+  padding: 0;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #7c8595;
+}
+.font-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 6px; }
+.font-chip {
+  display: inline-flex;
+  align-items: center;
+  background: #1a1d24;
+  border: 1px solid #2a2f3a;
+  border-radius: 999px;
+  padding: 3px 9px;
+  font-size: 11px;
+  color: #9aa3b2;
+  cursor: pointer;
+}
+.font-chip.is-on { background: #4a7cff; border-color: #4a7cff; color: #fff; }
+/* The checkbox stays in the accessibility tree and keeps the label/focus semantics — it is
+   only visually replaced by the pill, not removed. */
+.font-chip input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.font-chip:has(input:focus-visible) { outline: 2px solid #8fb0ff; outline-offset: 2px; }
+
+.font-cost {
+  margin: 8px 0;
+  padding: 7px 9px;
+  background: #0f1116;
+  border-radius: 5px;
+  font-size: 11px;
+  color: #9aa3b2;
+}
+.font-cost strong { color: #e6e8ec; }
+
+/* ── Messages ─────────────────────────────────────────────────────────── */
+.font-browser-msg {
+  margin: 0;
+  padding: 7px 9px;
+  border-radius: 5px;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.font-browser-msg.is-error { background: #2a1a1c; color: #ff8a92; }
+.font-browser-msg.is-ok { background: #16241c; color: #7fd6a0; }
+
+.font-upload { border-top: 1px solid #1d2129; padding-top: 10px; }
+.font-browser code {
+  background: #1a1d24;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-family: "SF Mono", Menlo, Consolas, monospace;
+  font-size: 10px;
+}
+
+/* The shared .tabs button has no focus ring; scoped here rather than changed globally, since
+   the Background panel's tabs are somebody else's call. */
+.font-browser .tabs .tab:focus-visible,
+.font-browser .btn:focus-visible,
+.font-browser input.text:focus-visible {
+  outline: 2px solid #8fb0ff;
+  outline-offset: -2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CUSTOM DROP FOLDER  ·  the "Your fonts (dropped in)" group's footer hint
+   Rendered inside FontPicker's custom group; a sibling of the option list, not an option.
+   Nothing above this banner is touched.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.font-picker-custom-hint {
+  padding: 2px 10px 10px;
+}
+.font-picker-custom-hint .font-picker-note { padding: 4px 0 8px; }
+.font-picker-custom-hint code {
+  background: #1a1d24;
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-size: 10px;
+}

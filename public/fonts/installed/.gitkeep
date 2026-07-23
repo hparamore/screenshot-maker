@@ -1,0 +1,4 @@
+Installed font families land here — one directory per family, plus a generated installed.css
+that declares all of them. Everything in this directory except this file is git-ignored; see
+the reasoning in .gitignore. The directory itself stays tracked so a fresh clone has somewhere
+to write, and so index.html's link to installed.css resolves.
