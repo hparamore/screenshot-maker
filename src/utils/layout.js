@@ -62,10 +62,33 @@ export function imagePanBounds(screenBounds, imgNatural, imageScale = 1) {
   const cover = Math.max(screenBounds.w / natW, screenBounds.h / natH)
   const shownW = natW * cover * scale
   const shownH = natH * cover * scale
+  // abs, not max(0, …): when the image is smaller than the screen (zoomed out past
+  // fill) there is still room to nudge it around inside the frame, so both axes stay
+  // pannable instead of locking.
   return {
-    maxX: Math.max(0, (shownW - screenBounds.w) / 2),
-    maxY: Math.max(0, (shownH - screenBounds.h) / 2)
+    maxX: Math.abs(shownW - screenBounds.w) / 2,
+    maxY: Math.abs(shownH - screenBounds.h) / 2
   }
+}
+
+// The scale factor that makes the image exactly fill (cover) the screen. imageScale
+// multiplies this: imageScale 1 = fill, which is why an untouched frame looks unchanged.
+export function imageCoverScale(screenBounds, imgNatural) {
+  const natW = imgNatural?.naturalWidth
+  const natH = imgNatural?.naturalHeight
+  if (!screenBounds || !natW || !natH) return 1
+  return Math.max(screenBounds.w / natW, screenBounds.h / natH)
+}
+
+// The imageScale value at which the *whole* screenshot is visible (contain) — always
+// <= 1. This is what the "Fit whole image" button sets, so nothing gets cropped.
+export function imageContainZoom(screenBounds, imgNatural) {
+  const natW = imgNatural?.naturalWidth
+  const natH = imgNatural?.naturalHeight
+  if (!screenBounds || !natW || !natH) return 1
+  const cover = Math.max(screenBounds.w / natW, screenBounds.h / natH)
+  const contain = Math.min(screenBounds.w / natW, screenBounds.h / natH)
+  return contain / cover
 }
 
 export function clampImageOffset(offset, bounds) {

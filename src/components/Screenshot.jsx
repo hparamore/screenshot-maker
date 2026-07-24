@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback, useEffect, useLayoutEffect } from 'react'
 import { useStore } from '../store'
-import DeviceFrame from './DeviceFrame'
+import DeviceFrame, { DEVICE_SPECS } from './DeviceFrame'
 import TextRender from './TextRender'
 import Overlay from './Overlay'
 import ConfirmDialog from './ConfirmDialog'
@@ -8,7 +8,8 @@ import {
   computeDeviceWidth,
   computeScreenBounds,
   imagePanBounds,
-  clampImageOffset
+  clampImageOffset,
+  imageCoverScale
 } from '../utils/layout'
 import { readTextMetrics, isOverflowing, overflowAmount } from '../utils/textMetrics'
 import { useFamilyAvailable } from '../utils/fontRegistry'
@@ -227,6 +228,27 @@ export default function Screenshot({ screenshot, displayScale, selected, index =
     ? `translate(${imageOffset.x}px, ${imageOffset.y}px) scale(${imageScale})`
     : undefined
   const panBounds = imagePanBounds(screenBounds, imgNatural, imageScale)
+
+  // Size the screenshot explicitly rather than leaning on `object-fit: cover`. Cover crops the
+  // image to the element box *before* any transform, so a scale-down only shrinks the crop and a
+  // translate only exposes black — the hidden edges never come back. Laying the image out at its
+  // true size (cover-fill × zoom) and moving it with left/top means panning reveals real pixels
+  // and zooming out shows the whole screenshot. At imageScale 1 / offset 0 this is pixel-identical
+  // to the old cover fill, so untouched frames look the same. Falls back to cover until the image's
+  // natural size is known, and for the raw-image ("No mockup") case which has no screen to clip to.
+  const hasDeviceScreen = device.type !== 'none' && !!DEVICE_SPECS[device.type]
+  const useExplicitFit = hasDeviceScreen && !!imgNatural && !!screenBounds
+  let imageBox = null
+  if (useExplicitFit) {
+    const cover = imageCoverScale(screenBounds, imgNatural)
+    const w = imgNatural.naturalWidth * cover * imageScale
+    const h = imgNatural.naturalHeight * cover * imageScale
+    imageBox = {
+      w, h,
+      left: (screenBounds.w - w) / 2 + imageOffset.x,
+      top: (screenBounds.h - h) / 2 + imageOffset.y
+    }
+  }
   const canPan = panBounds.maxX > 0.5 || panBounds.maxY > 0.5
 
   const onImageMouseDown = (e) => {
@@ -576,13 +598,24 @@ export default function Screenshot({ screenshot, displayScale, selected, index =
                   alt=""
                   draggable={false}
                   onMouseDown={onImageMouseDown}
-                  style={{
+                  style={imageBox ? {
+                    position: 'absolute',
+                    width: imageBox.w,
+                    height: imageBox.h,
+                    left: imageBox.left,
+                    top: imageBox.top,
+                    maxWidth: 'none',
+                    maxHeight: 'none',
+                    display: 'block',
+                    cursor: (zoomMode || cropEditingId)
+                      ? 'crosshair'
+                      : canPan ? (imagePanning ? 'grabbing' : 'grab') : 'default'
+                  } : {
+                    // Fallback before natural size is known, and for the raw-image case.
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
                     display: 'block',
-                    // `cover` stays the base fit; pan/zoom composes on top of it,
-                    // so scale 1 / offset 0 paints exactly as it always did.
                     transform: imageTransform,
                     transformOrigin: 'center center',
                     cursor: (zoomMode || cropEditingId)

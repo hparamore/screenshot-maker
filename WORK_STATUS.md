@@ -1,5 +1,43 @@
 # Screenshot Maker — Work Status
 
+## 2026-07-24 · Session 9 — image replace/remove, real fit, Figma canvas nav
+
+Three things Hunter hit while using the live demo.
+
+**1. Replace / Remove the dropped screenshot** (`inspector/DevicePanel.jsx`). The Screenshot Fit
+section now leads with **Replace image…** (opens the file picker) and **Remove image** (styled
+`ConfirmDialog`, clearly worded so it's not confused with deleting the frame). The empty state
+grew a **Choose image…** button — before, once a frame had an image there was no click path to
+change it, only drag-drop, and no way at all to clear it. Replace/Remove reset pan+zoom so a new
+image doesn't inherit the old one's transform.
+
+**2. The "cropped on the sides when zoomed out" was a real bug, not just cover.** The image was
+`object-fit: cover` with a `transform: scale()/translate()` on top. Cover crops to the element
+box *before* the transform, so zooming out only shrank the crop and panning only exposed black —
+the hidden edges never came back, and the pan math (which assumed the image scaled up) didn't
+match what was drawn. Fixed by sizing the `<img>` explicitly — `naturalW × coverScale × zoom`,
+positioned with `left/top` — inside the screen's clip (`Screenshot.jsx`, new `imageBox`). Now
+pan reveals real pixels and zoom-out shows the whole screenshot. **At scale 1 / offset 0 it's
+pixel-identical to the old cover fill**, so untouched frames and every existing export are
+unchanged (verified: a wide test image fills at 100%, and "Fit whole image" shows LEFT+CENTER+
+RIGHT with the device screen through top/bottom). Added **Fit whole image** (sets zoom to the
+contain ratio via `imageContainZoom`), lowered `MIN_ZOOM` to 20 so mismatched images can fully
+fit, and made `imagePanBounds` use `abs` so a zoomed-out image is still nudgeable on both axes.
+The raw-image ("No mockup") case and the pre-natural-size moment fall back to the old cover path.
+
+**3. Figma-style canvas navigation** (`Workspace.jsx`). Hold **Space + drag** to pan the
+workspace, **Cmd/Ctrl + wheel** to zoom toward the cursor, **wheel / Shift+wheel** to scroll the
+row sideways. Listeners are native (non-passive) so wheel can `preventDefault`; the pan mousedown
+is capture-phase so a Space-drag pans the view instead of grabbing the frame under the cursor.
+Space is suppressed from page-scrolling but still activates a focused control. Zoom slider max
+raised 0.5 → 0.6 to match. Documented in the `?` shortcuts overlay (new "Navigation" group).
+
+All verified in-browser via synthetic events (zoom 0.32→0.50 with default prevented; Shift+wheel
+scrolled 0→250; Space+drag moved the scroll by the drag delta) and by eye (Replace/Remove/Fit).
+Build clean. Pushed to `main`, which redeploys the Pages demo.
+
+---
+
 ## 2026-07-23 · Session 8 — public on GitHub + live demo
 
 Published the project publicly and stood up a live browser demo.

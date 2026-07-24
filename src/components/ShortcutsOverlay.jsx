@@ -29,6 +29,15 @@ const GROUPS = [
       [[MOD, 'V'], 'Paste an image as an overlay'],
       [['Esc'], 'Cancel zoom or crop selection, close dialogs']
     ]
+  },
+  {
+    title: 'Navigation',
+    items: [
+      [['Space', 'Drag'], 'Pan around the workspace'],
+      [[MOD, 'Scroll'], 'Zoom the workspace toward the cursor'],
+      [['Scroll'], 'Scroll the row · Shift for sideways'],
+      [['Shift', 'Scroll'], 'Scroll left / right']
+    ]
   }
 ]
 

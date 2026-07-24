@@ -35,6 +35,12 @@ export default function Workspace() {
   const ref = useRef(null)
   const [displayScale, setDisplayScale] = useState(0.18)
   const [showShortcuts, setShowShortcuts] = useState(false)
+  const [spacePan, setSpacePan] = useState(false)
+  // The wheel/pan listeners are native (non-passive) and read the current zoom, so mirror
+  // displayScale into a ref rather than re-attaching them on every zoom change.
+  const scaleRef = useRef(displayScale)
+  const spaceRef = useRef(false)
+  useEffect(() => { scaleRef.current = displayScale }, [displayScale])
 
   // Auto-fit a sensible scale based on workspace height
   useEffect(() => {
@@ -139,8 +145,91 @@ export default function Workspace() {
     ownerOfSelectedOverlay
   ])
 
+  // Figma-style canvas navigation: hold Space to drag-pan the view, Cmd/Ctrl+wheel to zoom
+  // toward the cursor, wheel to scroll the row. Listeners are native so wheel can preventDefault
+  // (React's onWheel is passive and can't). The mousedown is capture-phase so a Space-drag pans
+  // the view instead of selecting or dragging whatever frame is under the cursor.
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    const onWheel = (e) => {
+      if (e.metaKey || e.ctrlKey) {
+        e.preventDefault()
+        const old = scaleRef.current
+        const next = Math.max(0.05, Math.min(0.6, old * Math.exp(-e.deltaY * 0.0015)))
+        if (next === old) return
+        const rect = el.getBoundingClientRect()
+        const cx = e.clientX - rect.left
+        const cy = e.clientY - rect.top
+        const ratio = next / old
+        const nextLeft = (el.scrollLeft + cx) * ratio - cx
+        const nextTop = (el.scrollTop + cy) * ratio - cy
+        scaleRef.current = next
+        setDisplayScale(next)
+        // Re-anchor after the frames re-layout at the new scale.
+        requestAnimationFrame(() => { el.scrollLeft = nextLeft; el.scrollTop = nextTop })
+        return
+      }
+      const overflowX = el.scrollWidth - el.clientWidth > 1
+      const overflowY = el.scrollHeight - el.clientHeight > 1
+      if (e.shiftKey && overflowX) { el.scrollLeft += e.deltaY; e.preventDefault() }
+      else if (overflowX && !overflowY && e.deltaX === 0) { el.scrollLeft += e.deltaY; e.preventDefault() }
+    }
+
+    const onMouseDown = (e) => {
+      if (!spaceRef.current || e.button !== 0) return
+      e.preventDefault()
+      e.stopPropagation()
+      const sl = el.scrollLeft, st = el.scrollTop
+      const sx = e.clientX, sy = e.clientY
+      const onMove = (ev) => {
+        el.scrollLeft = sl - (ev.clientX - sx)
+        el.scrollTop = st - (ev.clientY - sy)
+      }
+      const onUp = () => {
+        window.removeEventListener('mousemove', onMove)
+        window.removeEventListener('mouseup', onUp)
+      }
+      window.addEventListener('mousemove', onMove)
+      window.addEventListener('mouseup', onUp)
+    }
+
+    const onKeyDown = (e) => {
+      if (e.code !== 'Space' || spaceRef.current) return
+      if (isTypingContext(e) || isModalOpen()) return
+      spaceRef.current = true
+      setSpacePan(true)
+      // Stop Space from page-scrolling — unless focus is on a control it should still activate.
+      const ae = document.activeElement
+      if (!(ae && ae.closest && ae.closest('button, a, input, textarea, select, [role="button"]'))) {
+        e.preventDefault()
+      }
+    }
+    const onKeyUp = (e) => {
+      if (e.code !== 'Space') return
+      spaceRef.current = false
+      setSpacePan(false)
+    }
+
+    el.addEventListener('wheel', onWheel, { passive: false })
+    el.addEventListener('mousedown', onMouseDown, true)
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      el.removeEventListener('wheel', onWheel)
+      el.removeEventListener('mousedown', onMouseDown, true)
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+    }
+  }, [])
+
   return (
-    <main className="workspace" ref={ref}>
+    <main
+      className="workspace"
+      ref={ref}
+      style={spacePan ? { cursor: 'grab' } : undefined}
+    >
       {zoomMode && (
         <div className="zoom-mode-banner" onClick={() => setZoomMode(false)}>
           Drag a region on a screenshot to create a pop-out zoom · Esc to cancel
@@ -166,7 +255,7 @@ export default function Workspace() {
 
       <div className="workspace-dock">
         <label className="lbl" htmlFor="workspace-zoom" style={{ minWidth: 0 }}>Zoom</label>
-        <input id="workspace-zoom" type="range" min={0.05} max={0.5} step={0.01} value={displayScale}
+        <input id="workspace-zoom" type="range" min={0.05} max={0.6} step={0.01} value={displayScale}
                aria-label="Workspace zoom"
                onChange={e => setDisplayScale(Number(e.target.value))}/>
         <span>{Math.round(displayScale * 100)}%</span>

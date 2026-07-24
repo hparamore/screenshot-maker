@@ -1,12 +1,14 @@
-import React from 'react'
+import React, { useRef, useState } from 'react'
 import { useStore, DEVICE_TYPES } from '../../store'
 import Stepper from '../Stepper'
+import ConfirmDialog from '../ConfirmDialog'
 import { useImageNatural } from '../../utils/useImageNatural'
 import {
   computeDeviceWidth,
   computeScreenBounds,
   imagePanBounds,
-  clampImageOffset
+  clampImageOffset,
+  imageContainZoom
 } from '../../utils/layout'
 
 const QUICK_COLORS = [
@@ -21,7 +23,7 @@ const QUICK_COLORS = [
   '#d97744'  // warm orange
 ]
 
-const MIN_ZOOM = 50
+const MIN_ZOOM = 20
 const MAX_ZOOM = 400
 
 export default function DevicePanel({ screenshot }) {
@@ -93,6 +95,8 @@ function ScreenshotFit({ screenshot }) {
   const exportSize = useStore(s => s.exportSize)
   const update = useStore(s => s.updateScreenshot)
   const imgNatural = useImageNatural(screenshot.image)
+  const fileRef = useRef(null)
+  const [confirmRemove, setConfirmRemove] = useState(false)
 
   const scale = Number.isFinite(screenshot.imageScale) ? screenshot.imageScale : 1
   const offset = {
@@ -107,11 +111,34 @@ function ScreenshotFit({ screenshot }) {
   const maxX = Math.round(bounds.maxX)
   const maxY = Math.round(bounds.maxY)
 
+  // A new image starts fresh — an inherited pan/zoom from the old one would look wrong.
+  const loadFile = (file) => {
+    if (!file || !file.type.startsWith('image/')) return
+    const reader = new FileReader()
+    reader.onload = (ev) => update(screenshot.id, {
+      image: ev.target.result, imageScale: 1, imageOffset: { x: 0, y: 0 }
+    })
+    reader.readAsDataURL(file)
+  }
+  const onPickFile = (e) => { loadFile(e.target.files?.[0]); e.target.value = '' }
+  const removeImage = () => {
+    update(screenshot.id, { image: null, imageScale: 1, imageOffset: { x: 0, y: 0 } })
+    setConfirmRemove(false)
+  }
+
+  const hiddenInput = (
+    <input ref={fileRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={onPickFile} />
+  )
+
   if (!screenshot.image) {
     return (
       <>
-        <h3 style={{ marginTop: 16 }}>Screenshot Fit</h3>
-        <p className="variant-hint">Drop a screenshot on this frame to pan and zoom it.</p>
+        <h3 style={{ marginTop: 16 }}>Screenshot</h3>
+        <div className="row">
+          <button className="btn small" onClick={() => fileRef.current?.click()}>Choose image…</button>
+        </div>
+        <p className="variant-hint">Or drop a screenshot onto the frame. Then pan and zoom it here.</p>
+        {hiddenInput}
       </>
     )
   }
@@ -133,11 +160,18 @@ function ScreenshotFit({ screenshot }) {
   }
 
   const reset = () => update(screenshot.id, { imageScale: 1, imageOffset: { x: 0, y: 0 } })
+  const fitWhole = () => setScale(Math.round(imageContainZoom(screenBounds, imgNatural) * 100))
   const isDefault = scale === 1 && offset.x === 0 && offset.y === 0
 
   return (
     <>
       <h3 style={{ marginTop: 16 }}>Screenshot Fit</h3>
+
+      <div className="row">
+        <button className="btn small" onClick={() => fileRef.current?.click()}>Replace image…</button>
+        <button className="btn small danger" onClick={() => setConfirmRemove(true)}>Remove image</button>
+      </div>
+      {hiddenInput}
 
       <div className="row">
         <label className="lbl" htmlFor={`img-zoom-range-${screenshot.id}`}>Zoom</label>
@@ -187,15 +221,27 @@ function ScreenshotFit({ screenshot }) {
         onReset={() => setOffset('y', 0)}
       />
 
-      <div className="row">
-        <button className="btn small" onClick={reset} disabled={isDefault}>
-          ↺ Reset pan &amp; zoom
+      <div className="row" style={{ gap: 6 }}>
+        <button className="btn small" onClick={fitWhole}>Fit whole image</button>
+        <button className="btn small ghost" onClick={reset} disabled={isDefault}>
+          ↺ Reset
         </button>
       </div>
       <p className="variant-hint">
-        Drag the screenshot on the canvas to pan — hold Shift to lock an axis. An
-        axis with no slack is disabled: zoom in to free it up.
+        Drag the screenshot on the canvas to pan — hold Shift to lock an axis.
+        “Fit whole image” zooms out until nothing is cropped; the device screen
+        shows through around it.
       </p>
+
+      <ConfirmDialog
+        open={confirmRemove}
+        title="Remove this screenshot?"
+        message="The image drops out of this frame and it goes back to the empty drop zone. Your text, background, and device stay. You can drop or choose a new one anytime."
+        confirmLabel="Remove image"
+        cancelLabel="Keep it"
+        onConfirm={removeImage}
+        onCancel={() => setConfirmRemove(false)}
+      />
     </>
   )
 }
