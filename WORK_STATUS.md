@@ -1,5 +1,38 @@
 # Screenshot Maker — Work Status
 
+## 2026-07-23 · Session 8 — public on GitHub + live demo
+
+Published the project publicly and stood up a live browser demo.
+
+- **Repo:** https://github.com/hparamore/screenshot-maker (public, MIT), with a description,
+  10 discovery topics, and the homepage set to the demo.
+- **Live demo:** https://hparamore.github.io/screenshot-maker/ — deployed by a GitHub Actions
+  workflow (`.github/workflows/deploy.yml`) on every push to `main`. Verified live: renders,
+  fonts load, zero console errors.
+- **Pages sub-path portability** (the only real engineering here): a project Pages site serves
+  from `/screenshot-maker/`, not root. Fixed by gating Vite `base` on a CI-only env var
+  (`GITHUB_PAGES`, set in the workflow) so normal `npm run build` still targets `/`, and by
+  making the font references **relative** — `index.html` links (`fonts/webfonts.css`) and
+  `webfonts.css` `url()` (`inter/...` instead of `/fonts/inter/...`). Relative resolves correctly
+  at either base and in dev. Verified by building with `GITHUB_PAGES=true` and serving the output
+  under a `/screenshot-maker/` path locally before pushing.
+- **Empty `installed.css` / `custom.css` are now force-committed.** They're normally git-ignored
+  (generated), but a fresh CI clone wouldn't have them, so their `<link>`s would 404 on Pages.
+  Committed header-only versions — deterministic (no timestamp), so the dev-server regeneration
+  doesn't churn them unless you actually install a font.
+- **Process docs are now in the repo on purpose.** `CLAUDE.md` and `WORK_STATUS.md` were kept
+  local in Session 6's first push; Hunter asked to include them to show the build process and the
+  human-directs-Claude workflow. README gained a "How this was built" section pointing at both.
+- **Graceful degradation confirmed on the static host:** `/api/*` calls (project save, font
+  install) 404 on Pages and fall back silently to download/upload — no errors, exactly the
+  `ApiUnavailable` path from Sessions 3–5.
+
+**Kept OUT of the repo:** Goldman Sans + the stray Swift file (unlicensed for redistribution),
+`node_modules`, `dist`, saved projects, installed/dropped fonts, and `.claude/` (local config).
+All verified excluded before each push.
+
+---
+
 ## 2026-07-23 · Session 7 — iPad device, tighter composition, dark scrollbars, re-shoot
 
 Design feedback pass on the GitHub screenshots, plus the code changes behind it.
