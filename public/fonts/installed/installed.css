@@ -1,0 +1,14 @@
+/*
+ * GENERATED — do not edit. Rewritten by vite-plugin-fonts.js on every install, upload and
+ * removal, and rebuilt from what is actually on disk each time the dev server starts.
+ *
+ * This is the companion to the hand-maintained webfonts.css: that file declares the four
+ * families bundled with the repo, this one declares whatever you have installed locally.
+ * Keeping them separate is why an install can never corrupt the bundled declarations.
+ *
+ * index.html links both. Fonts here are downloaded once and then served from disk — the app
+ * makes no font requests to any remote host at runtime, which is what keeps PNG export
+ * working offline.
+ */
+
+

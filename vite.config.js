@@ -21,7 +21,14 @@ const host = !process.env.SM_HOST
     ? true
     : process.env.SM_HOST
 
+// GitHub Pages serves a project site from a sub-path (/screenshot-maker/), so the CI build
+// needs its asset base set accordingly. Gated on an env var the Pages workflow sets, so a
+// normal `npm run build` for your own hosting still targets the root. Font references in
+// index.html and webfonts.css are relative, so they stay correct at either base.
+const base = process.env.GITHUB_PAGES === 'true' ? '/screenshot-maker/' : '/'
+
 export default defineConfig({
+  base,
   plugins: [react(), projectFiles(), fonts()],
   server: { port: 5173, host }
 })

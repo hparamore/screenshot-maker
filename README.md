@@ -2,6 +2,10 @@
 
 *A little tool I built so I'd stop hand-exporting App Store screenshots one at a time.*
 
+**[▶ Try the live demo](https://hparamore.github.io/screenshot-maker/)** — the full editor, runs
+entirely in your browser, nothing to install. (Saving projects to disk and installing new fonts
+need the local dev server; in the demo those quietly fall back to file download/upload.)
+
 ![The Screenshot Maker workspace — a scrolling row of marketing frames on the left, an inspector on the right](docs/workspace.png)
 
 I kept hitting the same chore. Every time one of my apps was ready to ship, the store listings
@@ -170,6 +174,18 @@ framework, no component library, no TypeScript, no backend.
   iPad-and-small-phone case fully automatic. The model is already shaped for it: `variantKey()` in
   `src/utils/variants.js` exists so an override key can become `lang@sizeProfile` without the rest
   of the app changing. Per-frame *device type* works today; per-frame *canvas size* doesn't, yet.
+
+## How this was built
+
+I built this with Claude Code as a pair. I drove it as the designer and product owner — the
+architecture, the interaction and visual decisions, the taste calls, what shipped and what got
+cut — and Claude did a lot of the implementation under that direction, which is how a solo side
+project got this much surface area.
+
+I'm leaving the working record in the repo on purpose, because it's an honest picture of how it
+actually got made: [WORK_STATUS.md](WORK_STATUS.md) is the session-by-session log with the
+reasoning behind each decision, and [CLAUDE.md](CLAUDE.md) is the set of conventions and
+invariants I hold the project — and the assistant — to.
 
 ## Licence
 

@@ -1,0 +1,13 @@
+/*
+ * GENERATED — do not edit. Rebuilt by vite-plugin-fonts.js from whatever font files are sitting
+ * in public/fonts/custom/ each time the dev server starts, and again on POST /api/fonts/custom/rescan.
+ *
+ * This is the companion to installed.css (fonts installed through the in-app browser) and to
+ * the hand-maintained webfonts.css (the four families bundled with the repo). This one declares
+ * the fonts you dropped into public/fonts/custom/ yourself. See that folder's README.md.
+ *
+ * Nothing here reaches a CDN: every src points at a same-origin file under /fonts/custom/, which
+ * is what keeps PNG export working offline.
+ */
+
+
